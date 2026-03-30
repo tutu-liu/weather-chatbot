@@ -1,51 +1,51 @@
 # AGENTS.md
 
-This file provides guidance to agents when working with code in this repository.
+このファイルは、このリポジトリでコードを扱う際のエージェント向けガイダンスを提供します。
 
-## Critical Non-Obvious Patterns
+## 重要な非自明パターン
 
-### Dual-Mode Architecture
-- Server auto-detects DEMO_MODE when `OPENWEATHER_API_KEY` is missing/invalid
-- `isConnected=false` triggers mock data generation in `generateMockWeatherData()` (server.js:91)
-- No fallback - API calls MUST go through `/api/weather` endpoint, never direct MCP calls from frontend
+### デュアルモードアーキテクチャ
+- `OPENWEATHER_API_KEY`が欠落または無効な場合、サーバーは自動的にDEMO_MODEを検出
+- `isConnected=false`は`generateMockWeatherData()`でモックデータ生成をトリガー（server.js:91）
+- フォールバックなし - API呼び出しは必ず`/api/weather`エンドポイント経由、フロントエンドから直接MCP呼び出しは不可
 
-### MCP Server Path Hardcoded
-- MCP server path is HARDCODED in server.js:24: `/Users/liu/Documents/IBM Bob/MCP/weather-server/build/index.js`
-- Must update this path if deploying to different environment
-- Path contains spaces - requires proper escaping in spawn() calls
+### MCPサーバーパスのハードコーディング
+- MCPサーバーパスはserver.js:24でハードコード: `/Users/liu/Documents/IBM Bob/MCP/weather-server/build/index.js`
+- 異なる環境にデプロイする場合はこのパスを更新する必要あり
+- パスにスペースが含まれる - spawn()呼び出しで適切なエスケープが必要
 
-### Japanese Data Keys
-- Weather data uses Japanese keys: `都市`, `気温`, `体感温度`, `天気`, `詳細`, `湿度`, `気圧`, `風速`
-- Frontend expects these exact keys in `formatWeatherData()` (app.js:89)
-- Changing keys breaks UI rendering
+### 日本語データキー
+- 天気データは日本語キーを使用: `都市`, `気温`, `体感温度`, `天気`, `詳細`, `湿度`, `気圧`, `風速`
+- フロントエンドは`formatWeatherData()`でこれらの正確なキーを期待（app.js:89）
+- キーを変更するとUIレンダリングが壊れる
 
-### City Name Extraction Logic
-- `extractCityName()` (app.js:53) uses hardcoded city list + regex fallback
-- Regex pattern `/([ぁ-んァ-ヶー一-龠a-zA-Z]+)の/` extracts word before 「の」
-- Adding new cities requires updating the hardcoded array
+### 都市名抽出ロジック
+- `extractCityName()`（app.js:53）はハードコードされた都市リスト + 正規表現フォールバックを使用
+- 正規表現パターン`/([ぁ-んァ-ヶー一-龠a-zA-Z]+)の/`は「の」の前の単語を抽出
+- 新しい都市を追加するにはハードコード配列の更新が必要
 
-### Forecast Day Limits
-- Days are clamped to 1-5 range in `extractDays()` (app.js:83)
-- Backend multiplies by 8 (3-hour intervals) in `generateMockWeatherData()` (app.js:109)
-- Real API also uses 3-hour intervals, so this is intentional alignment
+### 予報日数の制限
+- 日数は`extractDays()`で1-5の範囲にクランプ（app.js:83）
+- バックエンドは`generateMockWeatherData()`で8倍（3時間間隔）に乗算（app.js:109）
+- 実際のAPIも3時間間隔を使用するため、これは意図的な整合性
 
-### ES Module Requirements
-- `package.json` has `"type": "module"` - all files use ES6 imports
-- `__dirname` must be manually constructed using `fileURLToPath()` (server.js:8-9)
-- Cannot use CommonJS `require()` anywhere
+### ES Moduleの要件
+- `package.json`に`"type": "module"`あり - すべてのファイルでES6インポートを使用
+- `__dirname`は`fileURLToPath()`を使用して手動で構築する必要あり（server.js:8-9）
+- CommonJSの`require()`はどこでも使用不可
 
-### Port Configuration
-- Port 3000 is hardcoded in server.js:12
-- No environment variable override - must edit code to change port
-- Express serves static files from `__dirname` (server.js:16)
+### ポート設定
+- ポート3000はserver.js:12でハードコード
+- 環境変数のオーバーライドなし - ポートを変更するにはコードを編集する必要あり
+- Expressは`__dirname`から静的ファイルを提供（server.js:16）
 
-## Build/Run Commands
+## ビルド/実行コマンド
 ```bash
-npm start          # Production mode
-npm run dev        # Development with auto-reload (--watch flag)
+npm start          # 本番モード
+npm run dev        # 開発モード（--watchフラグで自動リロード）
 ```
 
-## MCP Server Location
-External dependency at: `/Users/liu/Documents/IBM Bob/MCP/weather-server/`
-- Must be pre-built before running this app
-- Build command: `cd "/Users/liu/Documents/IBM Bob/MCP/weather-server" && npm run build`
+## MCPサーバーの場所
+外部依存関係: `/Users/liu/Documents/IBM Bob/MCP/weather-server/`
+- このアプリを実行する前に事前ビルドが必要
+- ビルドコマンド: `cd "/Users/liu/Documents/IBM Bob/MCP/weather-server" && npm run build`
